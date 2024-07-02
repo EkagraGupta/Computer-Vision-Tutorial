@@ -11,14 +11,15 @@ def process_image(im_name, result_name, params='--edge-thresh 10 --peak-thresh 5
         result_name (_type_): _description_
         params (str, optional): _description_. Defaults to '--edge-thresh 10 --peak-thresh 5'.
     """
-
+    pgm_path = '/home/ekagra/personal/projects/ComputerVision/data/tmp.pgm'
     if im_name[-3:]!='pgm':
         # create a pgm file as binaries need the image in grayscale .pgm format
         im = Image.open(im_name).convert('L')
-        im.save('/home/ekagra/personal/projects/ComputerVision/data/tmp.pgm')
-        im_name = 'tmp.pgm'
+        im.save(pgm_path)
+
+        im_name = pgm_path
     
-    cmmd = str('sift ' + im_name + ' --output=' + result_name + ' ' + params)
+    cmmd = str(f'sift {im_name} --output={result_name} {params}')
     os.system(cmmd)
     print(f'Processed {im_name} to {result_name}')
 
@@ -66,14 +67,3 @@ def plot_features(im, locs, circle=False):
     else:
         plt.plot(locs[:, 0], locs[:, 1], 'ob')
     plt.axis('off')
-
-if __name__=='__main__':
-    im_path = '/home/ekagra/personal/projects/ComputerVision/data/empire_test_image.jpg'
-    im1 = np.array(Image.open(im_path).convert('L'))
-    process_image(im_name=im_path, result_name='/home/ekagra/personal/projects/ComputerVision/data/empire.sift')
-    l1, d1 = read_features_from_file('/home/ekagra/personal/projects/ComputerVision/data/empire.sift')
-
-    plt.figure()
-    plt.gray()
-    plot_features(im1, l1, circle=True)
-    plt.show()
