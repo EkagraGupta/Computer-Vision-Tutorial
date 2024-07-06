@@ -40,7 +40,7 @@ def alpha_for_triangle(points, m, n):
         m (_type_): _description_
         n (_type_): _description_
     """
-
+    points = points.astype(int)
     alpha = np.zeros((m, n))
     for i in range(min(points[0]), max(points[0])):
         for j in range(min(points[1]), max(points[1])):
@@ -84,7 +84,37 @@ def pw_affine(from_im, to_im, fp, tp, tri):
 
     # create image to warp to (needed if iterate colors)
     im_t = np.zeros(im.shape, "uint8")
-    pass
+
+    for t in tri:
+        # compute affine transformation
+        H = Haffine_from_points(tp[:, t], fp[:, t])
+
+        if is_color:
+            for col in range(from_im.shape[2]):
+                im_t[:, :, col] = ndimage.affine_transform(
+                    from_im[:, :, col], H[:2, :2], (H[0, 2], H[1, 2]), im.shape[:2]
+                )
+        else:
+            im_t = ndimage.affine_transform(
+                input=from_im,
+                matrix=H[:2, :2],
+                offset=(H[0, 2], H[1, 2]),
+                output=im.shape[:2],
+            )
+
+        # alpha for triangle
+        alpha = alpha_for_triangle(points=tp[:, t], m=im.shape[0], n=im.shape[1])
+
+        # add triangle to image
+        im[alpha > 0] = im_t[alpha > 0]
+    return im
+
+
+def plot_mesh(x, y, tri):
+    """Plot triangles."""
+    for t in tri:
+        t_ext = [t[0], t[1], t[2], t[0]]  # add first point to end
+        plt.plot(x[t_ext], y[t_ext], "r")
 
 
 if __name__ == "__main__":
