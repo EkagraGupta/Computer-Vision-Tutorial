@@ -203,10 +203,12 @@ if __name__ == "__main__":
     # filtered_coords = get_harris_points(harris_im)
     # plot_harris_points(im, filtered_coords)
 
-    im1_path = "/home/ekagra/personal/projects/ComputerVision/data/empire_test_image.jpg"
+    im1_path = (
+        "/home/ekagra/personal/projects/ComputerVision/data/empire_test_image.jpg"
+    )
     im2_path = "/home/ekagra/personal/projects/ComputerVision/data/empire_test_image_blurred.jpg"
-    im1 = np.array(Image.open(im1_path).convert('L'))
-    im2 = np.array(Image.open(im2_path).convert('L'))
+    im1 = np.array(Image.open(im1_path).convert("L"))
+    im2 = np.array(Image.open(im2_path).convert("L"))
     wid = 5
     harris_im = compute_harris_response(im1, 5)
     filtered_coords1 = get_harris_points(harris_im, wid + 1)
