@@ -1,5 +1,4 @@
 import homography
-import sift
 import numpy as np
 
 def convert_points(j):
