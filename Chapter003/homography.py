@@ -157,6 +157,76 @@ def Haffine_from_points(fp, tp):
 
     return H / H[2, 2]
 
+class RansacModel(object):
+    """
+    Class for testing homography fir with ransac.py
+    """
+
+    def __init__(self, debug = False):
+        self.debug = debug
+
+    def fit(self, data):
+        """Fit homography to four selected correspondences.
+
+        Args:
+            data (_type_): _description_
+        """
+        # transpose to fit H_from_points
+        data = data.T
+
+        # from points
+        fp = data[:3, :4]
+        # target points
+        tp = data[3:, 4:]
+
+        # fit homography and return
+        return H_from_points(fp, tp)
+    
+    def get_error(self, data, H):
+        """Apply homography to all correspondences,
+        return error for each transformed point.
+
+        Args:
+            data (_type_): _description_
+            H (_type_): _description_
+        """
+
+        data = data.T
+
+        # from points
+        fp = data[:3]
+        # target points
+        tp = data[3:]
+
+        # transform fp
+        fp_transformed = np.dot(H, fp)
+
+        # normalized hom. coordinates
+        for i in range(3):
+            fp_transformed[i] /= fp_transformed[2]
+
+        # return error per point
+        return np.sqrt(np.sum((tp - fp_transformed) ** 2, axis=0))
+    
+def H_from_ransac(fp, tp, model, max_iter=1000, match_threshold=10):
+    """RObust estimation of homography H from point correspondences using
+    RANSAC.
+
+    Args:
+        fp (_type_): _description_
+        tp (_type_): _description_
+        model (_type_): _description_
+        max_iter (int, optional): _description_. Defaults to 1000.
+        match_threshold (int, optional): _description_. Defaults to 10.
+    """
+    import ransac
+
+    # group corresponding points
+    data = np.vstack((fp, tp))
+
+    # compute H and return
+    H, ransac_data = ransac.ransac(data.T, model, 4, max_iter, match_threshold, 10, return_all=True)
+    return H, ransac_data['inliers']
 
 if __name__ == "__main__":
     # Example points
