@@ -8,7 +8,7 @@ out_path = (
 )
 
 im = np.array(Image.open(im_path))
-im2 = gaussian_filter(input=im, sigma=5)
+im2 = gaussian_filter(input=im, sigma=1)
 
 pil_im2 = Image.fromarray(im2)
 pil_im2.save(out_path)

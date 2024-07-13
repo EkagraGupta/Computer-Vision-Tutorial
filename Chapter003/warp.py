@@ -138,4 +138,5 @@ if __name__ == "__main__":
     plt.imshow(im3)
     plt.axis("equal")
     plt.axis("off")
+    plt.savefig('/home/ekagra/personal/projects/ComputerVision/data/Lenna_es.jpg')
     plt.show()

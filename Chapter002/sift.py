@@ -1,73 +1,63 @@
 from PIL import Image
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
+def sift(im):
+    sift = cv2.SIFT_create()
+    kp, desc = sift.detectAndCompute(im, None)
+    return kp, desc
 
-def process_image(im_name, result_name, params="--edge-thresh 10 --peak-thresh 5"):
-    """Process an image and save the results in a file.
+def plot_matches(im1, im2, keypoints1, keypoints2, matches):
+    im_matches = cv2.drawMatches(im1, keypoints1, im2, keypoints2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    plt.imshow(im_matches)
+    plt.show()
 
-    Args:
-        im_name (_type_): _description_
-        result_name (_type_): _description_
-        params (str, optional): _description_. Defaults to '--edge-thresh 10 --peak-thresh 5'.
-    """
-    pgm_path = "/home/ekagra/personal/projects/ComputerVision/data/tmp.pgm"
-    if im_name[-3:] != "pgm":
-        # create a pgm file as binaries need the image in grayscale .pgm format
-        im = Image.open(im_name).convert("L")
-        im.save(pgm_path)
+def match(desc1, desc2, threshold=0.75):
+    bf = cv2.BFMatcher()
+    matches = bf.knnMatch(desc1, desc2, k=2)
+    
+    # Apply ratio test
+    good_matches = []
+    for m, n in matches:
+        if m.distance < threshold * n.distance:
+            good_matches.append(m)
+    
+    return good_matches
 
-        im_name = pgm_path
+def match_twosided(desc1, desc2, threshold=0.75):
+    matches_12 = match(desc1, desc2, threshold)
+    matches_21 = match(desc2, desc1, threshold)
+    print(matches_12)
+    matches_12_dict = {m.queryIdx: m for m in matches_12}
+    matches_21_dict = {m.queryIdx: m for m in matches_21}
 
-    cmmd = str(f"sift {im_name} --output={result_name} {params}")
-    os.system(cmmd)
-    print(f"Processed {im_name} to {result_name}")
+    # Ensure matches are symmetric
+    symmetric_matches = []
+    for m in matches_12:
+        if m.trainIdx in matches_21_dict and matches_21_dict[m.trainIdx].trainIdx == m.queryIdx:
+            symmetric_matches.append(m)
+    
+    return symmetric_matches
 
+if __name__=='__main__':
+    im1_path = '/home/ekagra/personal/projects/ComputerVision/data/empire_test_image.jpg'
+    im2_path = '/home/ekagra/personal/projects/ComputerVision/data/Lenna_es.jpg'
+    im1 = np.array(Image.open(im1_path).convert('L'))
+    im2 = np.array(Image.open(im2_path).convert('L'))
+    keypoints1, descriptors1 = sift(im1)
+    keypoints2, descriptors2 = sift(im2)
+    matches = match_twosided(desc1=descriptors1,
+                             desc2=descriptors2)
+    
+    # Plot matches
+    plot_matches(im1, im2, keypoints1, keypoints2, matches)
+    # plt.figure()
+    # plt.gray()
+    # plot_matches(im1=im1,
+    #              im2=im2,
+    #              locs1=keypoints1,
+    #              locs2=keypoints2,
+    #              match_scores=matches)    
+    # plt.show()
 
-def read_features_from_file(filename: str):
-    """Read feature properties and return in matrix form.
-
-    Args:
-        filename (str): _description_
-    """
-
-    f = np.loadtxt(filename)
-    return f[:, :4], f[:, 4:]  # feature locations, descriptors
-
-
-def write_features_to_file(filename, locs, desc):
-    """Save feature location and descriptor to file.
-
-    Args:
-        filename (_type_): _description_
-        locs (_type_): _description_
-        desc (_type_): _description_
-    """
-
-    np.savetxt(filename, np.hstack((locs, desc)))
-
-
-def plot_features(im, locs, circle=False):
-    """Show image with features.
-
-    Args:
-        im (_type_): image as array
-        locs (_type_): (row. col, scale, orientation of each feature)
-        circle (bool, optional): _description_. Defaults to False.
-    """
-
-    def draw_circle(c, r):
-        t = np.arange(0, 1.01, 0.01) * 2 * np.pi
-        x = r * np.cos(t) + c[0]
-        y = r * np.sin(t) + c[1]
-        plt.plot(x, y, "b", linewidth=2)
-
-    plt.imshow(im)
-
-    if circle:
-        for p in locs:
-            draw_circle(p[:2], p[2])
-    else:
-        plt.plot(locs[:, 0], locs[:, 1], "ob")
-    plt.axis("off")
