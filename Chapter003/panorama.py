@@ -1,19 +1,12 @@
-import homography
+import sift
+from PIL import Image
 import numpy as np
 
-def convert_points(j):
-    """Converts the matches to hom. points
+l, d = {}, {}
 
-    Args:
-        j (_type_): _description_
-    """
-    ndx = np.matches[j].nonzero()[0]
-    fp = homography.make_homog(l[j+1][ndx, :2].T)
-    ndx2 = [int(np.matches[j][i]) for i in ndx]
-    tp = homography.make_homog(l[j][ndx2, :2].T)
-    return fp, tp
+im1_path = '/home/ekagra/personal/projects/ComputerVision/data/empire_test_image.jpg'
+im1 = np.array(Image.open(im1_path).convert('L'))
+        
+l, d = sift.sift(im1)
 
-# estimate the homographies
-model = homography.RansacModel()
-
-fp, tp = convert_points(1)
+print(type())
