@@ -5,6 +5,7 @@ import os
 from PIL import Image
 import matplotlib.pyplot as plt
 
+
 def read_points_from_xml(xmlFileName):
     """Reads control points for face alignment
 
@@ -67,6 +68,7 @@ def compute_rigid_transform(ref_points, points):
 
     return R, tx, ty  # rotated array as well as translation in x and y directions
 
+
 def rigid_alignment(faces, path, plot=False):
     """Align images rigidly and save as new images.
     "path" determines where the aligned images are saved.
@@ -84,20 +86,18 @@ def rigid_alignment(faces, path, plot=False):
     for face in faces:
         points = faces[face]
 
-        R, tx, ty = compute_rigid_transform(ref_points=ref_points,
-                                            points=points)
-        T = np.array([
-            [R[1][1], R[1][0]],
-            [R[0][1], R[0][0]]
-        ])
-        
+        R, tx, ty = compute_rigid_transform(ref_points=ref_points, points=points)
+        T = np.array([[R[1][1], R[1][0]], [R[0][1], R[0][0]]])
+
         im = np.array(Image.open(os.path.join(path, face)))
-        im2 = np.zeros(im.shape, 'uint8')
+        im2 = np.zeros(im.shape, "uint8")
 
         # warp each color channel
         for i in range(len(im.shape)):
-            im2[:, :, i] = ndimage.affine_transform(im[:, :, i], linalg.inv(T), offset=[-ty, -tx])
-        
+            im2[:, :, i] = ndimage.affine_transform(
+                im[:, :, i], linalg.inv(T), offset=[-ty, -tx]
+            )
+
         if plot:
             plt.imshow(im2)
             plt.show()
@@ -108,24 +108,18 @@ def rigid_alignment(faces, path, plot=False):
 
         # crop away border
         # imsave(os.path.join(path, 'aligned/' + face), im2[border: h - border, border:w - border, :])
-        align_path = os.path.join(path, 'aligned')
+        align_path = os.path.join(path, "aligned")
         if not os.path.exists(align_path):
             os.makedirs(align_path)
         save_path = os.path.join(align_path, face)
-        im2 = im2[border: h - border, border:w - border, :]
+        im2 = im2[border : h - border, border : w - border, :]
         im2_pil = Image.fromarray(im2)
         im2_pil.save(save_path)
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
     xml_path = "/home/ekagra/personal/projects/ComputerVision/data/jkfaces.xml"
-    out_path = '/home/ekagra/personal/projects/ComputerVision/data/jkfaces'
+    out_path = "/home/ekagra/personal/projects/ComputerVision/data/jkfaces"
     points = read_points_from_xml(xmlFileName=xml_path)
     print(list(points)[0])
     # register
