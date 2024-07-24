@@ -4,8 +4,8 @@ import numpy as np
 from PIL import Image
 
 # load images
-im1_path = '/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/empire_test_image.jpg'
-im2_path = '/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/empire_test_image_blurred.jpg'
+im1_path = '/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/book_frontal.jpg'
+im2_path = '/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/book_perspective.jpg'
 im1 = np.array(Image.open(im1_path).convert('L'))
 im2 = np.array(Image.open(im2_path).convert('L'))
 
@@ -20,7 +20,6 @@ fp = homography.make_homog(l0[ndx, :2].T)
 ndx2 = [int(matches[i]) for i in ndx]
 tp = homography.make_homog(l1[ndx2, :2].T)
 model = homography.RansacModel()
-print(f'fp: {fp.shape}\ttp: {tp.shape}')
 H = homography.H_from_ransac(fp, tp, model)
 
 def cube_points(c, wid):
@@ -34,8 +33,30 @@ def cube_points(c, wid):
     p.append([c[0] + wid, c[1] + wid, c[2] - wid])
     p.append([c[0] + wid, c[1] - wid, c[2] - wid])
     p.append([c[0] - wid, c[1] - wid, c[2] - wid])
-    p.append([c[0] - wid, c[1] - wid, c[2] - wid])
 
     # top
-    p.append([c[0] - wid], c[1] - wid, c[2] + wid)
-    p.append([c[0] - wid])
+    p.append([c[0] - wid, c[1] - wid, c[2] + wid])
+    p.append([c[0] - wid, c[1] + wid, c[2] + wid])
+    p.append([c[0] + wid, c[1] + wid, c[2] + wid])
+    p.append([c[0] + wid, c[1] - wid, c[2] + wid])
+    p.append([c[0] - wid, c[1] - wid, c[2] + wid])
+
+    # vertical sides
+    p.append([c[0] - wid, c[1] - wid, c[2] + wid])
+    p.append([c[0] - wid, c[1] + wid, c[2] + wid])
+    p.append([c[0] - wid, c[1] + wid, c[2] - wid])
+    p.append([c[0] + wid, c[1] + wid, c[2] - wid])
+    p.append([c[0] + wid, c[1] + wid, c[2] + wid])
+    p.append([c[0] + wid, c[1] - wid, c[2] + wid])
+    p.append([c[0] + wid, c[1] - wid, c[2] - wid])
+
+    return np.array(p).T
+
+# camera calibration
+K = camera.my_calibration((747, 1000))
+
+# 3D points at plane z=0 with sides of length 0.2
+box = cube_points([0, 0, 0.1], 0.1)
+
+# project bottom square in first image
+TBD
