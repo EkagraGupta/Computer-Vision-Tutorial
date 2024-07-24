@@ -44,6 +44,18 @@ class Camera(object):
 
 
         return self.K, self.R, self.t
+    
+    def center(self):
+        """Compute and return the camera center
+        """
+
+        if self.c is not None:
+            return self.c
+        else:
+            # compute c by factoring
+            self.factor()
+            self.c = -np.dot(self.R.T, self.t)
+            return self.c
 
 
 def rotation_matrix(a):
@@ -53,3 +65,12 @@ def rotation_matrix(a):
     R[:3, :3] = linalg.expm([[0, -a[2], a[1]], [a[2], 0, -a[0]], [-a[1], a[0], 0]])
 
     return R
+
+def my_calibration(size):
+    row, col = size
+    fx = 2556 * col / 2592
+    fy = 2586 * row / 1936
+    K = np.diag([fx, fy, 1])
+    K[0, 2] = 0.5 * col
+    K[1, 2] = 0.5 * row
+    return K

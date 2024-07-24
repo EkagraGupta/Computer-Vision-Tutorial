@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 
 def sift(im):
     sift = cv2.SIFT_create()
-    kp, desc = sift.detectAndCompute(im, None)
-    return kp, desc
+    keyp, desc = sift.detectAndCompute(im, None)
+    locs = np.array([[kp.pt[0], kp.pt[1], kp.size, kp.angle] for kp in keyp])
+    return locs, desc
 
 
 def plot_matches(im1, im2, keypoints1, keypoints2, matches):
@@ -52,27 +53,27 @@ def match_twosided(desc1, desc2, threshold=0.75):
         ):
             symmetric_matches.append(m)
 
-    return symmetric_matches
+    return np.array(symmetric_matches)
 
 
 if __name__ == "__main__":
-    im1_path = (
-        "/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/empire_test_image_blurred.jpg"
-    )
+    im1_path = "/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/empire_test_image_blurred.jpg"
     im2_path = "/home/ekagra/Documents/GitHub/Computer-Vision-Tutorial/data/empire_test_image.jpg"
     im1 = np.array(Image.open(im1_path).convert("L"))
     im2 = np.array(Image.open(im2_path).convert("L"))
-    keypoints1, descriptors1 = sift(im1)
-    keypoints2, descriptors2 = sift(im2)
+    locs1, descriptors1 = sift(im1)
+    locs2, descriptors2 = sift(im2)
     matches = match_twosided(desc1=descriptors1, desc2=descriptors2)
-    print(matches)
+    ndx = matches.nonzero()[0]
+    # Extracting matched indices
+    # ndx = [m.queryIdx for m in matches]
+    ndx2 = [m.trainIdx for m in matches]
+    import homography
+    fp = homography.make_homog(locs1[ndx, :2].T)
+    # ndx2 = [int(matches[i]) for i in ndx]
+    tp = homography.make_homog(locs2[ndx2, :2].T)
+    model = homography.RansacModel()
+    H = homography.H_from_ransac(fp, tp, model)
     # Plot matches
-    plot_matches(im1, im2, keypoints1, keypoints2, matches)
-    # plt.figure()
-    # plt.gray()
-    # plot_matches(im1=im1,
-    #              im2=im2,
-    #              locs1=keypoints1,
-    #              locs2=keypoints2,
-    #              match_scores=matches)
-    # plt.show()
+    # plot_matches(im1, im2, keypoints1, keypoints2, matches)
+    
