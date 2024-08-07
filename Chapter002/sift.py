@@ -67,13 +67,6 @@ if __name__ == "__main__":
     keypoints2, descriptors2 = sift(im2)
     matches = match_twosided(desc1=descriptors1, desc2=descriptors2)
     print(matches)
+    
     # Plot matches
     plot_matches(im1, im2, keypoints1, keypoints2, matches)
-    # plt.figure()
-    # plt.gray()
-    # plot_matches(im1=im1,
-    #              im2=im2,
-    #              locs1=keypoints1,
-    #              locs2=keypoints2,
-    #              match_scores=matches)
-    # plt.show()
